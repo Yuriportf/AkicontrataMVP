@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Início</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+
+    <!-- Hero -->
+    <section class="bg-primary text-white py-5">
+        <div class="container text-center py-5">
+            <h1 class="display-4 fw-bold mb-3">
+                Conectando alunos e empresas
+            </h1>
+            <p class="lead mb-4">
+                Encontre estágios, oportunidades e processos seletivos do IFPE e região.
+            </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <a th:href="@{/auth/cadastro/aluno}" class="btn btn-light btn-lg">
+                    <i class="bi bi-person-plus"></i> Sou Aluno
+                </a>
+                <a th:href="@{/auth/cadastro/empresa}" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-building"></i> Sou Empresa
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-briefcase-fill text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Vagas e Estágios</h5>
+                            <p class="card-text text-muted">
+                                Empresas publicam vagas e alunos se candidatam com poucos cliques.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-clipboard-check-fill text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Processos Seletivos</h5>
+                            <p class="card-text text-muted">
+                                Empresas criam questionários e avaliam candidatos por pontuação.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-person-badge-fill text-primary" style="font-size: 2.5rem;"></i>
+                            <h5 class="card-title mt-3">Currículo e Portfólio</h5>
+                            <p class="card-text text-muted">
+                                Alunos cadastram currículo, LinkedIn, GitHub e projetos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+</body>
+</html>

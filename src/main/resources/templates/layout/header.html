@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-mortarboard-fill"></i> MVPAkicontrata
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarMain" aria-controls="navbarMain"
+                aria-expanded="false" aria-label="Alternar navegação">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">Início</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/cursos}">Cursos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/sobre}">Sobre</a>
+                </li>
+
+                <!-- Menu do ALUNO -->
+                <li class="nav-item" sec:authorize="hasRole('ALUNO')">
+                    <a class="nav-link" th:href="@{/aluno/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Painel
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ALUNO')">
+                    <a class="nav-link" th:href="@{/aluno/vagas}">Vagas</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ALUNO')">
+                    <a class="nav-link" th:href="@{/aluno/curriculo}">Currículo</a>
+                </li>
+
+                <!-- Menu da EMPRESA -->
+                <li class="nav-item" sec:authorize="hasRole('EMPRESA')">
+                    <a class="nav-link" th:href="@{/empresa/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Painel
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('EMPRESA')">
+                    <a class="nav-link" th:href="@{/empresa/vagas}">Minhas Vagas</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('EMPRESA')">
+                    <a class="nav-link" th:href="@{/empresa/processos}">Processos</a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                <!-- Não logado -->
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:href="@{/login}">
+                        <i class="bi bi-box-arrow-in-right"></i> Entrar
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:href="@{/auth/cadastro}">
+                        <i class="bi bi-person-plus"></i> Cadastrar
+                    </a>
+                </li>
+
+                <!-- Logado -->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <span class="navbar-text text-white-50 me-3" sec:authentication="name"></span>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-link nav-link">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>

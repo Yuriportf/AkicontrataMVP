@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Minhas Vagas</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Minhas Vagas</h2>
+            <a th:href="@{/empresa/vagas/nova}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nova vaga
+            </a>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <i class="bi bi-briefcase text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3 mb-0">Você ainda não publicou vagas.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

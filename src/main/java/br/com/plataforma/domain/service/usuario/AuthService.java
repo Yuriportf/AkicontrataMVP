@@ -22,11 +22,10 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Cadastra um novo usuário com senha criptografada e role padrão.
-     */
     @Transactional
     public Usuario cadastrar(String email, String senhaBruta, TipoUsuario tipoUsuario) {
+        validar(email, senhaBruta, tipoUsuario);
+
         if (usuarioRepository.existsByEmail(email)) {
             throw new BusinessException("Já existe usuário com o email: " + email);
         }
@@ -38,7 +37,6 @@ public class AuthService {
                 .ativo(true)
                 .build();
 
-        // adiciona role padrão de acordo com o tipo
         String nomeRole = switch (tipoUsuario) {
             case ALUNO -> "ROLE_ALUNO";
             case EMPRESA -> "ROLE_EMPRESA";
@@ -54,10 +52,25 @@ public class AuthService {
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Verifica se a senha confere com o hash salvo.
-     */
     public boolean senhaConfere(String senhaBruta, String senhaHash) {
         return passwordEncoder.matches(senhaBruta, senhaHash);
+    }
+
+    private void validar(String email, String senha, TipoUsuario tipoUsuario) {
+        if (email == null || email.isBlank()) {
+            throw new BusinessException("Email é obrigatório");
+        }
+        if (!email.contains("@")) {
+            throw new BusinessException("Email inválido");
+        }
+        if (senha == null || senha.isBlank()) {
+            throw new BusinessException("Senha é obrigatória");
+        }
+        if (senha.length() < 4) {
+            throw new BusinessException("Senha deve ter no mínimo 4 caracteres");
+        }
+        if (tipoUsuario == null) {
+            throw new BusinessException("Tipo de usuário é obrigatório");
+        }
     }
 }

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
+<head><title>Minhas Candidaturas</title></head>
+<body>
+<div layout:fragment="content">
+    <div class="container py-5">
+        <h2 class="fw-bold mb-4">Minhas candidaturas</h2>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3 mb-0">Você ainda não se candidatou a nenhuma vaga.</p>
+                <a th:href="@{/aluno/vagas}" class="btn btn-primary mt-3">Ver vagas</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

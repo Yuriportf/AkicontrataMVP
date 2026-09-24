@@ -1,21 +1,40 @@
 package br.com.plataforma.domain.service.aluno;
 
 import br.com.plataforma.domain.entity.aluno.Aluno;
+import br.com.plataforma.domain.entity.instituicao.Campus;
+import br.com.plataforma.domain.entity.instituicao.Curso;
+import br.com.plataforma.domain.entity.usuario.Role;
+import br.com.plataforma.domain.entity.usuario.Usuario;
 import br.com.plataforma.domain.repository.aluno.AlunoRepository;
+import br.com.plataforma.domain.repository.instituicao.CampusRepository;
+import br.com.plataforma.domain.repository.instituicao.CursoRepository;
+import br.com.plataforma.domain.repository.usuario.RoleRepository;
+import br.com.plataforma.domain.repository.usuario.UsuarioRepository;
 import br.com.plataforma.shared.enumeration.TipoAluno;
+import br.com.plataforma.shared.enumeration.TipoUsuario;
 import br.com.plataforma.shared.exception.BusinessException;
 import br.com.plataforma.shared.exception.ResourceNotFoundException;
+import br.com.plataforma.web.dto.request.CadastroAlunoRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final RoleRepository roleRepository;
+    private final CursoRepository cursoRepository;
+    private final CampusRepository campusRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public Aluno buscarPorId(Long id) {
@@ -30,59 +49,62 @@ public class AlunoService {
     }
 
     @Transactional(readOnly = true)
-    public Aluno buscarPorMatricula(String matricula) {
-        return alunoRepository.findByMatricula(matricula)
-                .orElseThrow(() -> new ResourceNotFoundException("Aluno não encontrado com matrícula: " + matricula));
-    }
-
-    @Transactional(readOnly = true)
     public List<Aluno> listarTodos() {
         return alunoRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public List<Aluno> listarPorTipo(TipoAluno tipo) {
-        return alunoRepository.findByTipoAluno(tipo);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Aluno> listarPorCurso(Long cursoId) {
-        return alunoRepository.findByCursoId(cursoId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Aluno> listarPorCampus(Long campusId) {
-        return alunoRepository.findByCampusId(campusId);
-    }
-
     @Transactional
-    public Aluno criar(Aluno aluno) {
-        validar(aluno);
+    public Aluno cadastrarCompleto(CadastroAlunoRequest req) {
+        // 1. Email único
+        if (usuarioRepository.existsByEmail(req.getEmail())) {
+            throw new BusinessException("Já existe usuário com o email: " + req.getEmail());
+        }
 
-        if (aluno.getMatricula() != null && aluno.getCurso() != null
-                && alunoRepository.existsByMatriculaAndCursoId(aluno.getMatricula(), aluno.getCurso().getId())) {
+        // 2. Curso e campus
+        Curso curso = cursoRepository.findById(req.getCursoId())
+                .orElseThrow(() -> new BusinessException("Curso não encontrado"));
+
+        Campus campus = campusRepository.findById(req.getCampusId())
+                .orElseThrow(() -> new BusinessException("Campus não encontrado"));
+
+        // 3. Matrícula única no curso
+        if (alunoRepository.existsByMatriculaAndCursoId(req.getMatricula(), req.getCursoId())) {
             throw new BusinessException("Já existe aluno com essa matrícula nesse curso");
         }
 
-        return alunoRepository.save(aluno);
-    }
+        // 4. Roles (fora do lambda)
+        Set<Role> roles = new HashSet<>();
+        Optional<Role> roleOpt = roleRepository.findByNome("ROLE_ALUNO");
+        roleOpt.ifPresent(roles::add);
 
-    @Transactional
-    public Aluno atualizar(Long id, Aluno dados) {
-        Aluno aluno = buscarPorId(id);
-        validar(dados);
+        // 5. Usuário
+        Usuario usuario = Usuario.builder()
+                .email(req.getEmail())
+                .senha(passwordEncoder.encode(req.getSenha()))
+                .tipoUsuario(TipoUsuario.ALUNO)
+                .ativo(true)
+                .roles(roles)
+                .build();
 
-        aluno.setNomeCompleto(dados.getNomeCompleto());
-        aluno.setCpf(dados.getCpf());
-        aluno.setDataNascimento(dados.getDataNascimento());
-        aluno.setTelefone(dados.getTelefone());
-        aluno.setFotoUrl(dados.getFotoUrl());
-        aluno.setTipoAluno(dados.getTipoAluno());
-        aluno.setCurso(dados.getCurso());
-        aluno.setCampus(dados.getCampus());
-        aluno.setPeriodo(dados.getPeriodo());
-        aluno.setDataInicio(dados.getDataInicio());
-        aluno.setDataPrevisaoFim(dados.getDataPrevisaoFim());
+        usuario = usuarioRepository.save(usuario);
+
+        // 6. Aluno
+        TipoAluno tipoAluno = TipoAluno.valueOf(req.getTipoAluno());
+
+        Aluno aluno = Aluno.builder()
+                .usuario(usuario)
+                .nomeCompleto(req.getNomeCompleto())
+                .cpf(req.getCpf())
+                .dataNascimento(req.getDataNascimento())
+                .telefone(req.getTelefone())
+                .tipoAluno(tipoAluno)
+                .curso(curso)
+                .campus(campus)
+                .matricula(req.getMatricula())
+                .periodo(req.getPeriodo())
+                .dataInicio(req.getDataInicio())
+                .dataPrevisaoFim(req.getDataPrevisaoFim())
+                .build();
 
         return alunoRepository.save(aluno);
     }
@@ -91,20 +113,5 @@ public class AlunoService {
     public void deletar(Long id) {
         Aluno aluno = buscarPorId(id);
         alunoRepository.delete(aluno);
-    }
-
-    private void validar(Aluno aluno) {
-        if (aluno.getNomeCompleto() == null || aluno.getNomeCompleto().isBlank()) {
-            throw new BusinessException("Nome completo é obrigatório");
-        }
-        if (aluno.getMatricula() == null || aluno.getMatricula().isBlank()) {
-            throw new BusinessException("Matrícula é obrigatória");
-        }
-        if (aluno.getCurso() == null) {
-            throw new BusinessException("Curso é obrigatório");
-        }
-        if (aluno.getTipoAluno() == null) {
-            throw new BusinessException("Tipo de aluno é obrigatório");
-        }
     }
 }
