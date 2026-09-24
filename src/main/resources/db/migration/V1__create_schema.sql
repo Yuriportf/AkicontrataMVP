@@ -1,0 +1,354 @@
+-- ============================================================
+-- V1__create_schema.sql
+-- MVPAkicontrata — schema completo
+-- ============================================================
+-- ⚠️ Este arquivo é gerenciado pelo Flyway.
+-- NÃO inclua DROP SCHEMA / CREATE SCHEMA aqui.
+-- ============================================================
+
+-- ============================================================
+-- 1. USUÁRIOS E PERFIS
+-- ============================================================
+CREATE TABLE usuario (
+    id              BIGSERIAL PRIMARY KEY,
+    email           VARCHAR(180) NOT NULL UNIQUE,
+    senha           VARCHAR(255) NOT NULL,
+    tipo_usuario    VARCHAR(30) NOT NULL,
+    ativo           BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em       TIMESTAMP NOT NULL DEFAULT NOW(),
+    atualizado_em   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE role (
+    id      BIGSERIAL PRIMARY KEY,
+    nome    VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE usuario_role (
+    usuario_id  BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+    role_id     BIGINT NOT NULL REFERENCES role(id) ON DELETE CASCADE,
+    PRIMARY KEY (usuario_id, role_id)
+);
+
+-- ============================================================
+-- 2. INSTITUIÇÕES, CAMPUS E CURSOS
+-- ============================================================
+CREATE TABLE instituicao_ensino (
+    id          BIGSERIAL PRIMARY KEY,
+    nome        VARCHAR(180) NOT NULL,
+    sigla       VARCHAR(20),
+    cnpj        VARCHAR(18),
+    cidade      VARCHAR(100),
+    uf          VARCHAR(2)
+);
+
+CREATE TABLE campus (
+    id             BIGSERIAL PRIMARY KEY,
+    nome           VARCHAR(120) NOT NULL UNIQUE,
+    cidade         VARCHAR(100),
+    uf             VARCHAR(2) DEFAULT 'PE',
+    tipo           VARCHAR(20) NOT NULL DEFAULT 'PRESENCIAL',
+    instituicao_id BIGINT REFERENCES instituicao_ensino(id) ON DELETE SET NULL
+);
+
+CREATE TABLE curso (
+    id                  BIGSERIAL PRIMARY KEY,
+    nome                VARCHAR(180) NOT NULL,
+    nivel               VARCHAR(30) NOT NULL,
+    tipo_aluno          VARCHAR(20) NOT NULL,
+    area                VARCHAR(100),
+    duracao_semestres   INT,
+    instituicao_id      BIGINT REFERENCES instituicao_ensino(id)
+);
+
+CREATE TABLE curso_campus (
+    curso_id    BIGINT NOT NULL REFERENCES curso(id) ON DELETE CASCADE,
+    campus_id   BIGINT NOT NULL REFERENCES campus(id) ON DELETE CASCADE,
+    PRIMARY KEY (curso_id, campus_id)
+);
+
+-- ============================================================
+-- 3. ALUNOS
+-- ============================================================
+CREATE TABLE aluno (
+    id                  BIGSERIAL PRIMARY KEY,
+    usuario_id          BIGINT NOT NULL UNIQUE REFERENCES usuario(id) ON DELETE CASCADE,
+    nome_completo       VARCHAR(180) NOT NULL,
+    cpf                 VARCHAR(14) UNIQUE,
+    data_nascimento     DATE,
+    telefone            VARCHAR(20),
+    foto_url            VARCHAR(255),
+    tipo_aluno          VARCHAR(20) NOT NULL,
+    curso_id            BIGINT NOT NULL REFERENCES curso(id),
+    campus_id           BIGINT REFERENCES campus(id),
+    matricula           VARCHAR(30) NOT NULL,
+    periodo             VARCHAR(20),
+    data_inicio         DATE,
+    data_previsao_fim   DATE,
+    criado_em           TIMESTAMP NOT NULL DEFAULT NOW(),
+    atualizado_em       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX uq_aluno_matricula_curso ON aluno(matricula, curso_id);
+
+CREATE TABLE aluno_superior (
+    aluno_id        BIGINT PRIMARY KEY REFERENCES aluno(id) ON DELETE CASCADE,
+    semestre_atual  INT,
+    ira             NUMERIC(4,2),
+    turno           VARCHAR(20)
+);
+
+CREATE TABLE aluno_tecnico (
+    aluno_id        BIGINT PRIMARY KEY REFERENCES aluno(id) ON DELETE CASCADE,
+    modulo_atual    INT,
+    carga_horaria   INT,
+    turno           VARCHAR(20)
+);
+
+CREATE TABLE aluno_pos_graduacao (
+    aluno_id        BIGINT PRIMARY KEY REFERENCES aluno(id) ON DELETE CASCADE,
+    linha_pesquisa  VARCHAR(255),
+    orientador      VARCHAR(180)
+);
+
+-- ============================================================
+-- 4. CURRÍCULO E PORTFÓLIO
+-- ============================================================
+CREATE TABLE curriculo (
+    id              BIGSERIAL PRIMARY KEY,
+    aluno_id        BIGINT NOT NULL UNIQUE REFERENCES aluno(id) ON DELETE CASCADE,
+    resumo          TEXT,
+    objetivo        TEXT,
+    curriculo_pdf   VARCHAR(255),
+    atualizado_em   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE experiencia_profissional (
+    id              BIGSERIAL PRIMARY KEY,
+    curriculo_id    BIGINT NOT NULL REFERENCES curriculo(id) ON DELETE CASCADE,
+    empresa         VARCHAR(180),
+    cargo           VARCHAR(120),
+    descricao       TEXT,
+    data_inicio     DATE,
+    data_fim        DATE,
+    atual           BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE formacao_academica (
+    id              BIGSERIAL PRIMARY KEY,
+    curriculo_id    BIGINT NOT NULL REFERENCES curriculo(id) ON DELETE CASCADE,
+    instituicao     VARCHAR(180),
+    curso           VARCHAR(180),
+    nivel           VARCHAR(30),
+    data_inicio     DATE,
+    data_fim        DATE
+);
+
+CREATE TABLE habilidade (
+    id              BIGSERIAL PRIMARY KEY,
+    curriculo_id    BIGINT NOT NULL REFERENCES curriculo(id) ON DELETE CASCADE,
+    nome            VARCHAR(100) NOT NULL,
+    nivel           VARCHAR(20)
+);
+
+CREATE TABLE portfolio (
+    id              BIGSERIAL PRIMARY KEY,
+    aluno_id        BIGINT NOT NULL UNIQUE REFERENCES aluno(id) ON DELETE CASCADE,
+    linkedin_url    VARCHAR(255),
+    github_url      VARCHAR(255),
+    behance_url     VARCHAR(255),
+    site_pessoal    VARCHAR(255),
+    descricao       TEXT
+);
+
+CREATE TABLE projeto_portfolio (
+    id              BIGSERIAL PRIMARY KEY,
+    portfolio_id    BIGINT NOT NULL REFERENCES portfolio(id) ON DELETE CASCADE,
+    nome            VARCHAR(180) NOT NULL,
+    descricao       TEXT,
+    link            VARCHAR(255),
+    imagem_url      VARCHAR(255)
+);
+
+-- ============================================================
+-- 5. EMPRESAS
+-- ============================================================
+CREATE TABLE empresa (
+    id              BIGSERIAL PRIMARY KEY,
+    usuario_id      BIGINT NOT NULL UNIQUE REFERENCES usuario(id) ON DELETE CASCADE,
+    razao_social    VARCHAR(180) NOT NULL,
+    nome_fantasia   VARCHAR(180),
+    cnpj            VARCHAR(18) UNIQUE,
+    descricao       TEXT,
+    site            VARCHAR(255),
+    logo_url        VARCHAR(255),
+    cidade          VARCHAR(100),
+    uf              VARCHAR(2),
+    criado_em       TIMESTAMP NOT NULL DEFAULT NOW(),
+    atualizado_em   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE responsavel_empresa (
+    id              BIGSERIAL PRIMARY KEY,
+    empresa_id      BIGINT NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
+    nome            VARCHAR(180) NOT NULL,
+    cargo           VARCHAR(100),
+    email           VARCHAR(180),
+    telefone        VARCHAR(20)
+);
+
+-- ============================================================
+-- 6. VAGAS E CANDIDATURAS
+-- ============================================================
+CREATE TABLE vaga (
+    id                  BIGSERIAL PRIMARY KEY,
+    empresa_id          BIGINT NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
+    titulo              VARCHAR(180) NOT NULL,
+    descricao           TEXT,
+    modalidade          VARCHAR(20),
+    tipo                VARCHAR(20),
+    carga_horaria       INT,
+    bolsa               NUMERIC(10,2),
+    cidade              VARCHAR(100),
+    uf                  VARCHAR(2),
+    status              VARCHAR(20) NOT NULL DEFAULT 'ABERTA',
+    data_publicacao     TIMESTAMP NOT NULL DEFAULT NOW(),
+    data_encerramento   DATE
+);
+
+CREATE TABLE requisito_vaga (
+    id          BIGSERIAL PRIMARY KEY,
+    vaga_id     BIGINT NOT NULL REFERENCES vaga(id) ON DELETE CASCADE,
+    descricao   VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE beneficio_vaga (
+    id          BIGSERIAL PRIMARY KEY,
+    vaga_id     BIGINT NOT NULL REFERENCES vaga(id) ON DELETE CASCADE,
+    descricao   VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE candidatura (
+    id                  BIGSERIAL PRIMARY KEY,
+    vaga_id             BIGINT NOT NULL REFERENCES vaga(id) ON DELETE CASCADE,
+    aluno_id            BIGINT NOT NULL REFERENCES aluno(id) ON DELETE CASCADE,
+    status              VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
+    data_candidatura    TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (vaga_id, aluno_id)
+);
+
+-- ============================================================
+-- 7. CONVITES E ENTREVISTAS
+-- ============================================================
+CREATE TABLE convite_entrevista (
+    id              BIGSERIAL PRIMARY KEY,
+    empresa_id      BIGINT NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
+    aluno_id        BIGINT NOT NULL REFERENCES aluno(id) ON DELETE CASCADE,
+    vaga_id         BIGINT REFERENCES vaga(id) ON DELETE SET NULL,
+    mensagem        TEXT,
+    status          VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
+    criado_em       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE entrevista (
+    id              BIGSERIAL PRIMARY KEY,
+    convite_id      BIGINT NOT NULL UNIQUE REFERENCES convite_entrevista(id) ON DELETE CASCADE,
+    data_hora       TIMESTAMP,
+    local           VARCHAR(255),
+    link_online     VARCHAR(255),
+    observacoes     TEXT
+);
+
+-- ============================================================
+-- 8. PROCESSO SELETIVO + QUESTIONÁRIO + PONTUAÇÃO
+-- ============================================================
+CREATE TABLE processo_seletivo (
+    id              BIGSERIAL PRIMARY KEY,
+    empresa_id      BIGINT NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
+    vaga_id         BIGINT REFERENCES vaga(id) ON DELETE SET NULL,
+    nome            VARCHAR(180) NOT NULL,
+    descricao       TEXT,
+    ativo           BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE questionario (
+    id                      BIGSERIAL PRIMARY KEY,
+    processo_seletivo_id    BIGINT NOT NULL REFERENCES processo_seletivo(id) ON DELETE CASCADE,
+    titulo                  VARCHAR(180) NOT NULL,
+    descricao               TEXT,
+    pontuacao_minima        NUMERIC(6,2) DEFAULT 0
+);
+
+CREATE TABLE questao (
+    id              BIGSERIAL PRIMARY KEY,
+    questionario_id BIGINT NOT NULL REFERENCES questionario(id) ON DELETE CASCADE,
+    enunciado       TEXT NOT NULL,
+    tipo            VARCHAR(30) NOT NULL,
+    peso            NUMERIC(5,2) NOT NULL DEFAULT 1,
+    ordem           INT
+);
+
+CREATE TABLE alternativa (
+    id          BIGSERIAL PRIMARY KEY,
+    questao_id  BIGINT NOT NULL REFERENCES questao(id) ON DELETE CASCADE,
+    texto       TEXT NOT NULL,
+    correta     BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE resposta_questionario (
+    id              BIGSERIAL PRIMARY KEY,
+    questionario_id BIGINT NOT NULL REFERENCES questionario(id) ON DELETE CASCADE,
+    aluno_id        BIGINT NOT NULL REFERENCES aluno(id) ON DELETE CASCADE,
+    iniciado_em     TIMESTAMP NOT NULL DEFAULT NOW(),
+    finalizado_em   TIMESTAMP,
+    UNIQUE (questionario_id, aluno_id)
+);
+
+CREATE TABLE resposta_questao (
+    id                          BIGSERIAL PRIMARY KEY,
+    resposta_questionario_id    BIGINT NOT NULL REFERENCES resposta_questionario(id) ON DELETE CASCADE,
+    questao_id                  BIGINT NOT NULL REFERENCES questao(id) ON DELETE CASCADE,
+    alternativa_id              BIGINT REFERENCES alternativa(id) ON DELETE SET NULL,
+    texto_resposta              TEXT,
+    acertou                     BOOLEAN,
+    pontos_obtidos              NUMERIC(6,2) DEFAULT 0
+);
+
+CREATE TABLE pontuacao (
+    id                      BIGSERIAL PRIMARY KEY,
+    processo_seletivo_id    BIGINT NOT NULL REFERENCES processo_seletivo(id) ON DELETE CASCADE,
+    aluno_id                BIGINT NOT NULL REFERENCES aluno(id) ON DELETE CASCADE,
+    pontuacao_total         NUMERIC(8,2) NOT NULL DEFAULT 0,
+    percentual              NUMERIC(5,2),
+    calculado_em            TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (processo_seletivo_id, aluno_id)
+);
+
+-- ============================================================
+-- 9. NOTIFICAÇÕES
+-- ============================================================
+CREATE TABLE notificacao (
+    id          BIGSERIAL PRIMARY KEY,
+    usuario_id  BIGINT NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
+    titulo      VARCHAR(180) NOT NULL,
+    mensagem    TEXT,
+    lida        BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em   TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- 10. ÍNDICES
+-- ============================================================
+CREATE INDEX idx_aluno_usuario          ON aluno(usuario_id);
+CREATE INDEX idx_aluno_curso            ON aluno(curso_id);
+CREATE INDEX idx_aluno_campus           ON aluno(campus_id);
+CREATE INDEX idx_empresa_usuario        ON empresa(usuario_id);
+CREATE INDEX idx_vaga_empresa           ON vaga(empresa_id);
+CREATE INDEX idx_vaga_status            ON vaga(status);
+CREATE INDEX idx_candidatura_aluno      ON candidatura(aluno_id);
+CREATE INDEX idx_candidatura_vaga       ON candidatura(vaga_id);
+CREATE INDEX idx_pontuacao_processo     ON pontuacao(processo_seletivo_id);
+CREATE INDEX idx_notificacao_usuario    ON notificacao(usuario_id);
+CREATE INDEX idx_curso_campus_curso     ON curso_campus(curso_id);
+CREATE INDEX idx_curso_campus_campus    ON curso_campus(campus_id);
