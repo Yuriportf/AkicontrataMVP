@@ -5,50 +5,149 @@
       layout:decorate="~{layout/base}">
 <head><title>Cadastro de Empresa</title></head>
 <body>
+
 <div layout:fragment="content">
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-lg-7">
+            <div class="col-lg-9">
+
                 <div class="card shadow border-0">
                     <div class="card-body p-4 p-md-5">
+
                         <div class="text-center mb-4">
                             <i class="bi bi-building-fill text-primary" style="font-size: 3rem;"></i>
-                            <h3 class="mt-2 fw-bold">Criar conta de Empresa</h3>
+                            <h3 class="mt-2 fw-bold">Cadastrar Empresa</h3>
                             <p class="text-muted mb-0">Publique vagas, convide alunos e crie processos seletivos</p>
                         </div>
+
                         <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
-                        <form th:action="@{/auth/cadastro}" method="post">
-                            <input type="hidden" name="tipoUsuario" value="EMPRESA">
-                            <div class="mb-3">
-                                <label for="email" class="form-label fw-semibold">Email corporativo</label>
-                                <input type="email" id="email" name="email"
-                                       class="form-control form-control-lg"
-                                       placeholder="contato@empresa.com" required>
+
+                        <form th:action="@{/auth/cadastro/empresa}" method="post">
+
+                            <!-- ETAPA 1 — Acesso -->
+                            <h5 class="mb-3"><span class="badge bg-primary">1</span> Acesso</h5>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label fw-semibold">Email corporativo *</label>
+                                    <input type="email" id="email" name="email"
+                                           class="form-control"
+                                           placeholder="contato@suaempresa.com" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="senha" class="form-label fw-semibold">Senha *</label>
+                                    <input type="password" id="senha" name="senha"
+                                           class="form-control"
+                                           placeholder="Mínimo 4 caracteres"
+                                           minlength="4" required>
+                                </div>
                             </div>
-                            <div class="mb-4">
-                                <label for="senha" class="form-label fw-semibold">Senha</label>
-                                <input type="password" id="senha" name="senha"
-                                       class="form-control form-control-lg"
-                                       placeholder="Mínimo 4 caracteres"
-                                       minlength="4" required>
+
+                            <!-- ETAPA 2 — Dados da empresa -->
+                            <h5 class="mb-3"><span class="badge bg-primary">2</span> Dados da empresa</h5>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label for="razaoSocial" class="form-label fw-semibold">Razão social *</label>
+                                    <input type="text" id="razaoSocial" name="razaoSocial"
+                                           class="form-control" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="cnpj" class="form-label fw-semibold">CNPJ *</label>
+                                    <input type="text" id="cnpj" name="cnpj"
+                                           class="form-control"
+                                           placeholder="00.000.000/0000-00" required>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="nomeFantasia" class="form-label fw-semibold">Nome fantasia</label>
+                                    <input type="text" id="nomeFantasia" name="nomeFantasia"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="site" class="form-label fw-semibold">Site</label>
+                                    <input type="url" id="site" name="site"
+                                           class="form-control"
+                                           placeholder="https://...">
+                                </div>
+                                <div class="col-12">
+                                    <label for="descricao" class="form-label fw-semibold">Descrição da empresa</label>
+                                    <textarea id="descricao" name="descricao" rows="3"
+                                              class="form-control"
+                                              placeholder="Conte um pouco sobre a empresa..."></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cidade" class="form-label fw-semibold">Cidade</label>
+                                    <input type="text" id="cidade" name="cidade"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="uf" class="form-label fw-semibold">UF</label>
+                                    <input type="text" id="uf" name="uf"
+                                           class="form-control" maxlength="2"
+                                           placeholder="PE">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="logoUrl" class="form-label fw-semibold">Logo (URL)</label>
+                                    <input type="url" id="logoUrl" name="logoUrl"
+                                           class="form-control">
+                                </div>
                             </div>
+
+                            <!-- ETAPA 3 — Responsável -->
+                            <h5 class="mb-3"><span class="badge bg-primary">3</span> Responsável (opcional)</h5>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="responsavelNome" class="form-label fw-semibold">Nome</label>
+                                    <input type="text" id="responsavelNome" name="responsavelNome"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="responsavelCargo" class="form-label fw-semibold">Cargo</label>
+                                    <input type="text" id="responsavelCargo" name="responsavelCargo"
+                                           class="form-control"
+                                           placeholder="RH, Diretor...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="responsavelEmail" class="form-label fw-semibold">Email</label>
+                                    <input type="email" id="responsavelEmail" name="responsavelEmail"
+                                           class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="responsavelTelefone" class="form-label fw-semibold">Telefone</label>
+                                    <input type="text" id="responsavelTelefone" name="responsavelTelefone"
+                                           class="form-control"
+                                           placeholder="(81) 99999-9999">
+                                </div>
+                            </div>
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="bi bi-check-circle-fill"></i> Criar conta da empresa
                                 </button>
                             </div>
                         </form>
+
                     </div>
+
                     <div class="card-footer bg-light text-center py-4 border-0">
                         <p class="mb-2 text-muted">Já tem uma conta?</p>
                         <a th:href="@{/login}" class="btn btn-outline-primary btn-lg w-100">
                             <i class="bi bi-box-arrow-in-right"></i> Entrar na minha conta
                         </a>
                     </div>
+
                 </div>
+
+                <p class="text-center text-muted small mt-4">
+                    É um aluno?
+                    <a th:href="@{/auth/cadastro/aluno}">Cadastre-se como Aluno</a>
+                </p>
+
             </div>
         </div>
     </div>
 </div>
+
 </body>
 </html>

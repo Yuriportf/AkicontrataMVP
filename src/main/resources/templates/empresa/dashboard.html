@@ -8,9 +8,70 @@
 <div layout:fragment="content">
     <div class="container py-5">
 
-        <div class="mb-4">
-            <h2 class="fw-bold">Painel da Empresa 🏢</h2>
-            <p class="text-muted">Gerencie suas vagas, candidatos e processos seletivos</p>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold mb-1"
+                    th:text="'Olá, ' + (${empresa != null and empresa.nomeFantasia != null} ? ${empresa.nomeFantasia} : ${empresa.razaoSocial}) + ' 🏢'">
+                    Painel da Empresa
+                </h2>
+                <p class="text-muted mb-0" th:text="${empresa.cnpj}">CNPJ</p>
+            </div>
+            <a th:href="@{/empresa/perfil}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil-square"></i> Editar perfil
+            </a>
+        </div>
+
+        <div th:if="${empresa != null}" class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3"><i class="bi bi-building"></i> Dados da empresa</h6>
+                        <p class="mb-1"><strong>Razão social:</strong>
+                            <span th:text="${empresa.razaoSocial}">—</span>
+                        </p>
+                        <p class="mb-1"><strong>Nome fantasia:</strong>
+                            <span th:text="${empresa.nomeFantasia != null} ? ${empresa.nomeFantasia} : '—'">—</span>
+                        </p>
+                        <p class="mb-1"><strong>CNPJ:</strong>
+                            <span th:text="${empresa.cnpj}">—</span>
+                        </p>
+                        <p class="mb-1"><strong>Cidade:</strong>
+                            <span th:text="${empresa.cidade != null} ? ${empresa.cidade} + '/' + ${empresa.uf} : '—'">—</span>
+                        </p>
+                        <p class="mb-0"><strong>Site:</strong>
+                            <a th:if="${empresa.site != null}" th:href="${empresa.site}" target="_blank"
+                               th:text="${empresa.site}">site</a>
+                            <span th:if="${empresa.site == null}">—</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-3"><i class="bi bi-person-badge"></i> Responsável</h6>
+                        <div th:if="${not #lists.isEmpty(empresa.responsaveis)}">
+                            <div th:each="r : ${empresa.responsaveis}">
+                                <p class="mb-1"><strong>Nome:</strong>
+                                    <span th:text="${r.nome}">—</span>
+                                </p>
+                                <p class="mb-1"><strong>Cargo:</strong>
+                                    <span th:text="${r.cargo != null} ? ${r.cargo} : '—'">—</span>
+                                </p>
+                                <p class="mb-1"><strong>Email:</strong>
+                                    <span th:text="${r.email != null} ? ${r.email} : '—'">—</span>
+                                </p>
+                                <p class="mb-0"><strong>Telefone:</strong>
+                                    <span th:text="${r.telefone != null} ? ${r.telefone} : '—'">—</span>
+                                </p>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0" th:if="${#lists.isEmpty(empresa.responsaveis)}">
+                            Nenhum responsável cadastrado.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="row g-4">
@@ -19,7 +80,6 @@
                     <div class="card shadow-sm border-0 h-100 text-center p-4">
                         <i class="bi bi-briefcase-fill text-primary" style="font-size: 2.5rem;"></i>
                         <h5 class="mt-3 text-dark">Minhas Vagas</h5>
-                        <p class="text-muted small mb-0">Gerencie suas vagas</p>
                     </div>
                 </a>
             </div>
@@ -28,7 +88,6 @@
                     <div class="card shadow-sm border-0 h-100 text-center p-4">
                         <i class="bi bi-plus-circle-fill text-primary" style="font-size: 2.5rem;"></i>
                         <h5 class="mt-3 text-dark">Nova Vaga</h5>
-                        <p class="text-muted small mb-0">Publique uma vaga</p>
                     </div>
                 </a>
             </div>
@@ -37,7 +96,6 @@
                     <div class="card shadow-sm border-0 h-100 text-center p-4">
                         <i class="bi bi-clipboard-check-fill text-primary" style="font-size: 2.5rem;"></i>
                         <h5 class="mt-3 text-dark">Processos</h5>
-                        <p class="text-muted small mb-0">Processos seletivos</p>
                     </div>
                 </a>
             </div>
@@ -46,7 +104,6 @@
                     <div class="card shadow-sm border-0 h-100 text-center p-4">
                         <i class="bi bi-envelope-paper-fill text-primary" style="font-size: 2.5rem;"></i>
                         <h5 class="mt-3 text-dark">Convites</h5>
-                        <p class="text-muted small mb-0">Convites enviados</p>
                     </div>
                 </a>
             </div>
